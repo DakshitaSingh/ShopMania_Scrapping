@@ -5,24 +5,15 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
 
 const launchBrowser = async () => {
-  // Use the exact path from the Render error log.
-  // This path includes the specific Chromium version.
-  const renderExecutablePath = '/opt/render/.cache/puppeteer/chrome/linux-137.0.7151.70/chrome-linux64/chrome';
-
-  // Use an environment variable if set, otherwise fall back to the Render-specific path,
-  // or Puppeteer's default if neither is available (though renderExecutablePath should almost always be used here for Render)
-  const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || renderExecutablePath;
-
-  console.log(`Launching Puppeteer with executablePath: ${executablePath}`);
+  console.log("Launching Puppeteer with auto-detected executablePath..."); // Add a log for clarity
 
   return puppeteer.launch({
-    headless: 'new', // Using new headless mode
-    executablePath: executablePath, // Set the explicit path here
+    headless: 'new', // Or true, but 'new' is preferred
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
-      // '--disable-gpu' // Often useful in headless environments
+      // No executablePath specified here!
     ]
   });
 };
