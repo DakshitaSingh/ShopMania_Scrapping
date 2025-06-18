@@ -1,11 +1,10 @@
-# Use a Node.js base image that is suitable for Puppeteer
-# node:20-slim is a good choice as it's lean but based on Debian/Ubuntu,
-# allowing us to use apt-get for Chromium.
+# Use a Node.js base image that has apt and can install Chromium
+# node:20-slim is a good choice as it's small but Debian-based.
 FROM node:20-slim
 
-# Install system dependencies required for Puppeteer to run Chromium
-# This list is comprehensive and covers most common needs.
-# '--no-install-recommends' keeps the image size smaller.
+# Install Chromium and its necessary system dependencies
+# Updated: Removed libjpeg-turbo8 and libwebp6 which are causing issues on Bookworm.
+# Added libu2f-udev which is often a missing dependency for Chromium on modern Debian.
 RUN apt-get update && apt-get install -y \
     chromium \
     fontconfig \
@@ -21,11 +20,9 @@ RUN apt-get update && apt-get install -y \
     libgcc1 \
     libgconf-2-4 \
     libgdk-pixbuf2.0-0 \
-    libjpeg-turbo8 \
     libnotify4 \
     libpng16-16 \
     libstdc++6 \
-    libwebp6 \
     libx11-6 \
     libxcomposite1 \
     libxcursor1 \
@@ -46,6 +43,7 @@ RUN apt-get update && apt-get install -y \
     libpam0g \
     libxcb1 \
     xdg-utils \
+    libu2f-udev \ # <--- Added this, often needed for Chromium
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
@@ -53,25 +51,19 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy package.json and package-lock.json first to leverage Docker's build cache
-# This means if only your code changes, but dependencies don't, npm install won't re-run.
 COPY package*.json ./
 
 # Install Node.js dependencies
-# --omit=dev keeps the production image smaller
 RUN npm install --omit=dev
 
-# Copy the rest of your application code to the container
-# This will copy your 'scrapping' folder, 'server.js', etc.
+# Copy the rest of your application code
 COPY . .
 
-# Set the working directory to where your server.js is located
-# Adjust this if your server.js is directly in /app, otherwise '/app/scrapping' is correct for your structure
+# If your main server.js is in a subdirectory (e.g., 'scrapping'), change to that directory
 WORKDIR /app/scrapping
 
-# Expose the port your Express app will listen on.
-# Render automatically maps this container port to an external port.
+# Expose the port your Express app is listening on
 EXPOSE 10000
 
-# Define the command to run your application when the container starts
-# This should match your 'start' script from package.json, adjusted for the WORKDIR
+# Command to run your application when the container starts
 CMD ["node", "server.js"]
