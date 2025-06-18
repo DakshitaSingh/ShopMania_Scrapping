@@ -43,7 +43,7 @@ RUN apt-get update && apt-get install -y \
     libpam0g \
     libxcb1 \
     xdg-utils \
-    libu2f-udev \ # <--- Added this, often needed for Chromium
+    libu2f-udev \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
